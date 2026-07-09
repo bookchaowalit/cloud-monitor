@@ -1,0 +1,16 @@
+name = "solo-empire-monitor"
+main = "src/worker.ts"
+compatibility_date = "2024-12-01"
+account_id = "4a3ba0eee7dba5c9131a0d1ad3639114"
+
+# Cron trigger - runs every 5 minutes
+[triggers]
+crons = ["*/5 * * * *"]
+
+# KV namespace for storing status data
+[[kv_namespaces]]
+binding = "MONITOR_KV"
+id = "MONITOR_KV_NAMESPACE_ID"  # Will be created via wrangler
+
+# Enable workers.dev subdomain
+workers_dev = true
