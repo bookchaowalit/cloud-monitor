@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 // Solo Empire Cloud Monitor - Uptime Monitoring Worker
 // Runs on Cloudflare Workers free tier (100K requests/day)
 // Checks health of services every 5 minutes via Cron Trigger
@@ -30,15 +32,15 @@ export default {
   // HTTP handler - view status
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    
+
     if (url.pathname === '/status') {
       return handleStatus(env);
     }
-    
+
     if (url.pathname === '/check') {
       return handleManualCheck(env);
     }
-    
+
     return new Response(`
 <!DOCTYPE html>
 <html>
@@ -66,9 +68,9 @@ export default {
     fetch('/status')
       .then(r => r.json())
       .then(data => {
-        document.querySelector('.last-check').textContent = 
+        document.querySelector('.last-check').textContent =
           'Last check: ' + new Date(data.timestamp).toLocaleString();
-        document.getElementById('services').innerHTML = data.results.map(s => 
+        document.getElementById('services').innerHTML = data.results.map(s =>
           '<div class="service ' + s.status + '">' +
           '<strong>' + s.name + '</strong><br>' +
           '<span class="latency">' + s.latency + 'ms</span>' +
@@ -103,40 +105,40 @@ async function handleManualCheck(env: Env): Promise<Response> {
 
 async function runChecks(env: Env): Promise<{ results: MonitorResult[]; timestamp: string }> {
   const results: MonitorResult[] = [];
-  
+
   for (const service of SERVICES) {
     const result = await checkService(service);
     results.push(result);
   }
-  
+
   const status = { results, timestamp: new Date().toISOString() };
-  
+
   // Store in KV (expires in 24 hours)
   await env.MONITOR_KV.put('latest-status', JSON.stringify(status), { expirationTtl: 86400 });
-  
+
   // Store history (last 100 checks)
   const historyKey = `history:${Date.now()}`;
   await env.MONITOR_KV.put(historyKey, JSON.stringify(status), { expirationTtl: 604800 });
-  
+
   return status;
 }
 
 async function checkService(service: { name: string; url: string }): Promise<MonitorResult> {
   const start = Date.now();
-  
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-    
+
     const response = await fetch(service.url, {
       method: 'GET',
       signal: controller.signal,
       headers: { 'User-Agent': 'SoloEmpireMonitor/1.0' },
     });
-    
+
     clearTimeout(timeout);
     const latency = Date.now() - start;
-    
+
     if (response.ok) {
       return { url: service.url, name: service.name, status: 'up', latency, timestamp: new Date().toISOString() };
     } else if (response.status >= 500) {
@@ -145,11 +147,11 @@ async function checkService(service: { name: string; url: string }): Promise<Mon
       return { url: service.url, name: service.name, status: 'degraded', latency, timestamp: new Date().toISOString(), error: `HTTP ${response.status}` };
     }
   } catch (error) {
-    return { 
-      url: service.url, 
-      name: service.name, 
-      status: 'down', 
-      latency: Date.now() - start, 
+    return {
+      url: service.url,
+      name: service.name,
+      status: 'down',
+      latency: Date.now() - start,
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : 'Unknown error'
     };
