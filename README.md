@@ -1,3 +1,11 @@
+---
+title: "Solo Empire Cloud Monitor"
+tags: [documentation, infra]
+created: 2026-07-09
+updated: 2026-08-08
+description: "Documentation for Solo Empire Cloud Monitor."
+---
+
 # Solo Empire Cloud Monitor
 
 Cloudflare Worker that monitors your services 24/7 on the **free tier**.
