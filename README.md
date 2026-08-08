@@ -7,7 +7,7 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 - Checks 7 domains every 5 minutes via Cron Trigger
 - Stores status in KV (last 24 hours)
 - Web UI at `https://solo-empire-monitor.<your-subdomain>.workers.dev`
-- API endpoints: `/status` (JSON), `/check` (manual trigger)
+- API endpoints: `/status` (public JSON), `/check` (token-protected manual trigger)
 - Zero cost — runs entirely on Cloudflare's free tier (100K requests/day)
 
 ## Services Monitored
@@ -37,12 +37,20 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 
 3. **Update `wrangler.toml`** with the KV namespace ID from step 2
 
-4. **Deploy:**
+4. **Configure the manual-check token:**
+   ```bash
+   npx wrangler secret put MONITOR_TOKEN
+   ```
+
+   `/status` remains public for the status page. `/check` returns `401` without
+   `Authorization: Bearer <MONITOR_TOKEN>` and is disabled until the secret exists.
+
+5. **Deploy:**
    ```bash
    npx wrangler deploy
    ```
 
-5. **Add Cron Trigger:**
+6. **Add Cron Trigger:**
    ```bash
    npx wrangler triggers deploy
    ```
@@ -51,7 +59,7 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 
 - **View status page:** `https://solo-empire-monitor.<subdomain>.workers.dev`
 - **Get JSON status:** `https://solo-empire-monitor.<subdomain>.workers.dev/status`
-- **Manual check:** `https://solo-empire-monitor.<subdomain>.workers.dev/check`
+- **Manual check:** `curl -H "Authorization: Bearer $MONITOR_TOKEN" https://solo-empire-monitor.<subdomain>.workers.dev/check`
 
 ## Cost
 

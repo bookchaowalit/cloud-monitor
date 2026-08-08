@@ -6,6 +6,7 @@
 
 export interface Env {
   MONITOR_KV: KVNamespace;
+  MONITOR_TOKEN?: string;
 }
 
 interface MonitorResult {
@@ -38,7 +39,7 @@ export default {
     }
 
     if (url.pathname === '/check') {
-      return handleManualCheck(env);
+      return handleManualCheck(request, env);
     }
 
     return new Response(`
@@ -98,7 +99,19 @@ async function handleStatus(env: Env): Promise<Response> {
   return Response.json(data);
 }
 
-async function handleManualCheck(env: Env): Promise<Response> {
+async function handleManualCheck(request: Request, env: Env): Promise<Response> {
+  const token = env.MONITOR_TOKEN?.trim();
+  if (!token) {
+    return Response.json(
+      { error: 'Manual checks are disabled until MONITOR_TOKEN is configured' },
+      { status: 503 },
+    );
+  }
+
+  if (request.headers.get('authorization') !== `Bearer ${token}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const results = await runChecks(env);
   return Response.json(results);
 }
@@ -125,18 +138,16 @@ async function runChecks(env: Env): Promise<{ results: MonitorResult[]; timestam
 
 async function checkService(service: { name: string; url: string }): Promise<MonitorResult> {
   const start = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
     const response = await fetch(service.url, {
       method: 'GET',
       signal: controller.signal,
       headers: { 'User-Agent': 'SoloEmpireMonitor/1.0' },
     });
 
-    clearTimeout(timeout);
     const latency = Date.now() - start;
 
     if (response.ok) {
@@ -155,5 +166,7 @@ async function checkService(service: { name: string; url: string }): Promise<Mon
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : 'Unknown error'
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
