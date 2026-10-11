@@ -39,7 +39,7 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 
 2. **Create KV namespace:**
    ```bash
-   cd infra/cloud-monitor
+   cd solo-cloud-monitor
    npx wrangler kv:namespace create MONITOR_KV
    ```
 
@@ -74,3 +74,7 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 **$0/month** — well within free tier limits:
 - 288 cron runs/day × 7 checks = 2,016 requests/day
 - Free tier: 100,000 requests/day
+
+## ที่มา
+
+ย้ายมาจาก `solo-empire/infra/cloud-monitor/` (2026-10-11) พร้อมประวัติ git. Worker ที่ deploy: `solo-empire-monitor` (monitor.bookchaowalit.com). `wrangler.toml` ยังมี KV id เป็น placeholder — ตั้ง KV จริงก่อน deploy ใหม่; deploy ต้องได้รับอนุมัติจากเจ้าของ.
