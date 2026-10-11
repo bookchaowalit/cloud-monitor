@@ -1,0 +1,8 @@
+system_id: bookchaowalit/private/solo-cloud-monitor
+prefix: CARD
+brand: "CLOUD MONITOR"
+subtitle: "Cloudflare Worker ตรวจสถานะบริการทุก 5 นาทีบน free tier"
+footer: "solo-cloud-monitor — Product Card"
+color: "#0a9396"
+audience: internal
+tier: L0
