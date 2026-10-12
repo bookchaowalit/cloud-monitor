@@ -39,7 +39,7 @@ Cloudflare Worker that monitors your services 24/7 on the **free tier**.
 
 2. **Create KV namespace:**
    ```bash
-   cd solo-cloud-monitor
+   cd cloud-monitor
    npx wrangler kv:namespace create MONITOR_KV
    ```
 
